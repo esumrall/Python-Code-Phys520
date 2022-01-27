@@ -1,21 +1,27 @@
-import numpy as np 
+mport numpy as np 
 import matplotlib.pyplot as plt 
-from scipy_integrate import solve_ivp
+from scipy.integrate import solve_ivp
 
 #constants
-R =
-T =
-F =
+R = 8.314462618 # J K-1 mol-1
+T = 310.0 # K
+F = 96485.332 # C mol-1
 
 #concentration conditions
-Ko =
-Ki =
-No =
-Ni =
+Ko = .005 # M
+Ki = .140 # M
+No = .140 # M
+Ni = .015 # M
 
 #Nernst Potentials
 Ek = (R*T/F)*np.log(Ko/Ki)
 En = (R*T/F)*np.log(No/Ni)
 
 def dVdt(t, V, Ek, En):
-    C =
+    C = 200e-14 # farad
+    gNa = 10e-12 # s
+    return -gNa*(V-En)/C
+
+V0 = Ek # Initial Condition
+results = solve_ivp(dVdt, [0., 1.], [-0.000], args = [Ek,En])
+plt.plot(results.t,results.y[0])
