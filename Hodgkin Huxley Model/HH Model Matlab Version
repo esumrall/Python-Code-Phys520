@@ -1,0 +1,39 @@
+function [f,varargout] = dXdT_HH(t,x,I_app);
+% FUNCTION dXdT_HH
+%  Inputs: t - time (milliseconds)
+%          x - vector of state variables {v,m,n,h}
+%          I_app - applied current (microA cm^{-2})
+%
+%  Outputs: f - vector of time derivatives
+%              {dv/dt,dm/dt,dn/dt,dh/dt}
+% Resting potentials, conductivities, and capacitance:
+V_Na = 115;
+V_K  = -12;
+V_L  = 10.6;
+g_Na = 120;
+g_K  = 36;
+g_L  = 0.3;
+C_m  = 1e-6;
+% State Variables:
+v = x(1);
+m = x(2);
+n = x(3);
+h = x(4);
+% alphas and betas:
+a_m = 0.1*(25-v)/(exp((25-v)/10)-1);
+b_m = 4*exp(-v/18);
+a_h = 0.07*exp(-v/20);
+b_h = 1 ./ (exp((30-v)/10) + 1);
+a_n = 0.01*(10-v)./(exp((10-v)/10)-1);
+b_n = 0.125*exp(-v/80);
+% Computing currents:
+I_Na = (m^3)*h*g_Na*(v-V_Na);
+I_K  = (n^4)*g_K*(v-V_K);
+I_L  = g_L*(v-V_L);
+% Computing derivatives:
+f(1) = (-I_Na - I_K - I_L + I_app)/C_m;
+f(2,:) = a_m*(1-m) - b_m*m;
+f(3) = a_n*(1-n) - b_n*n;
+f(4) = a_h*(1-h) - b_h*h;
+% Outputting the conductivities
+varargout{1} = [(m^3)*h*g_Na (n^4)*g_K g_L];

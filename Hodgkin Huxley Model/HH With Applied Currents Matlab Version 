@@ -1,0 +1,29 @@
+%% This script simulates the Hodgkin-Huxley model with applied
+%  current to generate Figure 8.12.
+% Generate initial condition xo for simulation:
+I_app = 0;
+[t,x] = ode15s(@dXdT_HH,[0 30],[0 0 0 0],[],I_app);
+xo = x(end,:);
+% % Add nonzero applied current:
+% I_app = 6.2;
+% [t,x] = ode15s(@dXdT_HH,[0 30],xo,[],I_app);
+% Plot computed action potential
+figure(1); clf; ax1 = axes('position',[0.15 0.15 0.78 0.78]); hold on;
+plot(t,x(:,1),'k-','linewidth',1.5);
+set(gca,'Fontsize',18);
+hold off; box on; axis([0 30 -20 120]);
+xlabel('$t$ (ms)','interpreter','latex','fontsize',20);
+ylabel('$v$ (mV)','interpreter','latex','fontsize',20);
+% Obtaining and plotting conductivity values
+for i = 1:length(x);
+  [f G3(i,:)] = dXdT_HH(0,x(i,:),I_app);
+end
+figure(2); clf; ax1 = axes('position',[0.15 0.15 0.78 0.78]); hold on;
+plot(t,G3(:,1),'k','linewidth',1.5);
+plot(t,G3(:,2),'k--','linewidth',1.5);
+set(gca,'Fontsize',18);
+hold off; box on; axis([0 30 0 45]);
+xlabel('$t$ (ms)','interpreter','latex','fontsize',20);
+ylabel('Conductance (mS$\cdot$cm$^{-2}$)','interpreter','latex','fontsize',20);
+text(16.4,21,'$g_{Na}$','interpreter','latex','fontsize',20);
+text(19,8,'$g_{K}$','interpreter','latex','fontsize',20);
