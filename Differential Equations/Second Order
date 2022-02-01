@@ -1,0 +1,15 @@
+#Second Order
+import numpy as np 
+import matplotlib.pyplot as plt 
+from scipy.integrate import solve_ivp
+
+
+def dXdT(t, X):
+  x1, x2 = X
+  dX = [x2, -x1]
+  return dX
+
+tspan = np.arange(0., 15., 0.25)
+results = solve_ivp(dXdT, [0., 15.], [1., 0], t_eval = tspan)
+#results = solve_ivp(dXdT, [0., 15.], [1., 0] )
+plt.plot(results.t,results.y[0])
