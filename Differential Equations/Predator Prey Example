@@ -15,13 +15,25 @@ Ps = odeint(dP_dt, P0, ts)
 prey = Ps[:,0]
 predators = Ps[:,1]
 
+#Plot1
 plt.plot(ts, prey, "+", label="Rabbits")
 plt.plot(ts, predators, "x", label="Foxes")
 plt.xlabel("Time")
 plt.ylabel("Population")
 plt.legend();
 
+#Plot 2
 plt.plot(prey, predators, "-")
+plt.xlabel("Rabbits")
+plt.ylabel("Foxes")
+plt.title("Rabbits vs Foxes");
+
+#Plot 3
+ic = np.linspace(1.0, 3.0, 21)
+for r in ic:
+    P0 = [r, 1.0]
+    Ps = odeint(dP_dt, P0, ts)
+    plt.plot(Ps[:,0], Ps[:,1], "-")
 plt.xlabel("Rabbits")
 plt.ylabel("Foxes")
 plt.title("Rabbits vs Foxes");
