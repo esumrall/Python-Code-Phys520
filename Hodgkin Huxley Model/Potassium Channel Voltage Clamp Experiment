@@ -1,0 +1,38 @@
+# Voltage Clamp Experiment Potassium Channel 
+import numpy as np 
+import matplotlib.pyplot as plt 
+from scipy.integrate import solve_ivp
+
+# Function to evolve potassium channel conductance
+def dXdT(t, X):
+    # state variables:
+    n = X
+    
+    # Parameters
+    a_n = 0.85 # n gate opening rate (ms^-1)
+    b_n = 0.11 # n gate closing rate (ms^-1)
+    
+    dn = a_n*(1.0 - n) - b_n*n # rate of change of n gate open probability
+    
+    dX = dn
+    return dX
+
+g_Kmax = 36.0 # Maximal conductance (mmhos/cm^2)
+
+# set times to display results and integrate the differential equation
+tspan = np.arange(0., 11., 0.1)
+results = solve_ivp(dXdT, [0., 11.], [0.], method = 'RK45', t_eval = tspan)
+
+n_K = np.array(results.y)
+g_K = g_Kmax * n_K**4
+
+# data for HH voltage clamp at 109
+t_Data = [0.25, 0.40, 0.60, 0.75, 1.10, 1.50, 2.00, 2.80, 4.25, 6.50, 8.90]
+gK_Data = [0.25, 0.50, 1.50, 3.00, 7.00, 11.25, 14.00, 17.00, 19.00, 20.50, 21.00]
+
+plt.plot(results.t, g_K.T)
+plt.plot(t_Data, gK_Data, 'ok')
+
+plt.xlabel("Time (msec)")
+plt.ylabel("Potassium Conductance (mmho/cm^2)")
+plt.title("Potassium Channel Voltage Clamp Experiment")
