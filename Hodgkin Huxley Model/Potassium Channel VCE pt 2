@@ -1,0 +1,31 @@
+# Voltage Clamp Experiment Potassium Channel 
+import numpy as np 
+import matplotlib.pyplot as plt 
+import math
+from scipy.integrate import solve_ivp
+
+# Constants
+v = [19, 26, 32, 38, 51, 63, 76, 88, 100, 109]
+gK_max = 36
+gK_clamp = np.empty((len(v), 200))
+
+for i in range(len(v)):
+    # Define Differential Equation
+    def dNdt_clamp(t, N):
+        alpha_n = 0.01*((10 - v[i])/(math.exp((10 - v[i])/10)-1))
+        beta_n = 0.125*math.exp((-v[i])/80)
+        return alpha_n*(1-N) - beta_n*N
+    
+    n0 = 0 # Initial Condition
+    tspan = np.arange(0., 10., 0.05) # time step
+    
+    # Solve Differential Equation
+    results = solve_ivp(dNdt_clamp, [0., 10.], [n0], t_eval = tspan)
+    
+    # Plot
+    gK_clamp[i, :] = results.y[0]**4*gK_max # calculate GK
+    plt.plot(tspan, gK_clamp[i, :])
+    
+    plt.xlabel("Time (msec)")
+    plt.ylabel("Potassium Conductance (mmho/cm^2)")
+    plt.title("Potassium Channel Voltage Clamp Experiment")
