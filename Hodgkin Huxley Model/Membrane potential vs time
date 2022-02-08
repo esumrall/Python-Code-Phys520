@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.integrate import solve_ivp
 
+# Giant Squid Action Potential Model
+
 def dXdT(t, X):
   # State Variables:
   v, m, h, n = X
@@ -36,7 +38,7 @@ def dXdT(t, X):
   dn = a_n*(1.0 - n) - b_n*n                # RoC of K act gate (1/ms)
   dX = [dv, dm, dh, dn]
   return dX
-  
+
 # Set evaluation time points and then integrate
 tspan = np.arange(0., 50., 0.1)
 results = solve_ivp(dXdT, [0., 50], [0.0, 0.0, 0.75, 0.25],\
@@ -46,3 +48,4 @@ results = solve_ivp(dXdT, [0., 50], [0.0, 0.0, 0.75, 0.25],\
 plt.plot(results.t,results.y[0])
 plt.xlabel('Time (ms)')
 plt.ylabel('Membrane potential (mV)')
+plt.title('Giant Squid Axon Action Potential')
