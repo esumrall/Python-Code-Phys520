@@ -1,0 +1,54 @@
+import numpy as np 
+import matplotlib.pyplot as plt 
+from scipy.integrate import solve_ivp
+from scipy.signal import find_peaks
+
+def dXdT(t, X):
+  # State Variables:
+  v, m, h, n = X
+  
+  # Resting potentials, conductivities, capacitance and applied current:
+  V_Na = 115.0                              # Nernst potential for Na (mV)
+  V_K  = -12.0                              # Nernst potential for K (mV)
+  V_L  = 10.6                               # Nernst potential for leak (mV)
+  g_Na = 120.0                              # Max Na conductance (mS/cm^2)
+  g_K  = 36.0                               # Max K conductance (mS/cm^2)
+  g_L  = 0.3                                # Max leak conductance (mS/cm^2)
+  C_m  = 1.0e-6                             # Membrane capacitance (F/cm^2)
+  I_app = 6.2                               # Applied current (uA/cm^2)
+  
+  # alphas and betas:
+  a_m = 0.1*(25.0-v)/(np.exp((25.0-v)/10.)-1.)  # Na act gate open rate (1/ms)
+  b_m = 4.0*np.exp(-v/18.0)                     # Na act gate close rate (1/ms)
+  a_h = 0.07*np.exp(-v/20.0)                    # Na inact gt open rate (1/ms)
+  b_h = 1.0 / (np.exp((30.0-v)/10.0) + 1.0)     # Na inact gt close rate (1/ms)
+  a_n = 0.01*(10-v)/(np.exp((10.0-v)/10) - 1.0) # K act open rate (1/ms)
+  b_n = 0.125*np.exp(-v/80.0)                   # K act close rate (1/ms)
+  
+  # Computing currents:
+  I_Na = (m*m*m)*h*g_Na*(v-V_Na)                # Na current (uA/cm^2)
+  I_K  = (n*n*n*n)*g_K*(v-V_K)                  # K current (uA/cm^2)
+  I_L  = g_L*(v-V_L)                            # Leak current (uA/cm^2)
+  
+  # Computing derivatives:
+  dv = (-I_Na - I_K - I_L + I_app )/C_m     # RoC of V (mV/ms)
+  dm = a_m*(1.0 - m) - b_m*m                # RoC of Na act gate (1/ms)
+  dh = a_h*(1.0  -h) - b_h*h                # RoC of Na inact gate (1/ms)
+  dn = a_n*(1.0 - n) - b_n*n                # RoC of K act gate (1/ms)
+  dX = [dv, dm, dh, dn]
+  return dX
+
+# Set evaluation time points and then integrate
+tspan = np.arange(0., 50., 0.1)
+results = solve_ivp(dXdT, [0., 50], [0.0, 0.0, 0.75, 0.25],\
+                    method = 'LSODA', t_eval = tspan)
+peaks, _ = find_peaks(results.y[0], height=60)
+Npeak = len(peaks)
+T = results.t[peaks[Npeak-1]] - results.t[peaks[Npeak-2]]
+    
+# Plot out membrane potential as a function of time    
+plt.plot(results.t,results.y[0])
+plt.plot(results.t[peaks],results.y[0, peaks], "x")
+plt.xlabel('ms')
+plt.ylabel('mV')
+plt.title('Giant Squid Axon')
