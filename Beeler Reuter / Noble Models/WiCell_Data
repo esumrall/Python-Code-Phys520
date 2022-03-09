@@ -1,29 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# METHOD 1
-time = []
-fluorescence = []
+Data = np.loadtxt("./WiCell_Data1.txt")
 
-f = open('./WiCell_Data1.txt', 'r')
+MaxFlrsnc = np.max(Data)
+NormFlrsnc = Data[:,1]/MaxFlrsnc
+Time = Data[:,0]
 
-for row in f:
-    row = row.split(' ')
-    time.append(row[0])
-    fluorescence.append(float(row[1]))
-
-plt.plot(time, fluorescence)
-
-f.close()
-
-# METHOD 2
-# Data = np.loadtxt("./WiCell_Data1.txt")
-
-# MaxFlrsnc = np.max(Data)
-# NormFlrsnc = Data[:,1]/MaxFlrsnc
-# Time = Data[:,0]
-
-# plt.figure(1)
-# plt.plot(Time, NormFlrsnc)
-# plt.xlabel('Time(s)')
-# plt.ylabel('Normalized Fluorescence')
+plt.figure(1)
+plt.plot(Time, NormFlrsnc)
+plt.xlabel('Time(s)')
+plt.ylabel('Normalized Fluorescence')
