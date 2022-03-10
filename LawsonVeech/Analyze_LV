@@ -112,8 +112,8 @@ def CK_mb(x, pH, Mg_o, K_o, ATP, ADP, CrP, Pi, T):
   Pi3 = Pi*(Mg/Kmg_Pi)/P_Pi
   Pi5 = Pi*(K/Kk_Pi)/P_Pi
 
-  E = (Mg_o*1.0e6 - (Mg + ATP3 + ATP4 + ADP3 + ADP4 + CrP3 + Pi3)*1.0e6)**2 + \
-        (K_o*1.0e6 - (K + ATP5 + ADP5 + CrP5 + Pi5)*1.0e6)**2
+  E = (Mg_o - (Mg + ATP3 + ATP4 + ADP3 + ADP4 + CrP3 + Pi3))**2 + \
+        (K_o - (K + ATP5 + ADP5 + CrP5 + Pi5))**2
       
   return E
 
