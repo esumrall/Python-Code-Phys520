@@ -28,7 +28,7 @@ def dXdT(t, X):
     z_Ca = 2                            # Calcium valance
     VFoRT = (V*F)/(R*T)                 # Calculated term to use later
     
-    g_Na_max = 400 * 0.9                      # 10% decrease in Max Na channel cond (mS/cm^2)
+    g_Na_max = 400 * 1.35                      # 10% decrease in Max Na channel cond (mS/cm^2)
     E_Na = 40                                 # Na channel Nernst potentl (mV) 
     gK1_Fact = 0.65                           # % increase/decrease in gK1
     E_K = -100                                # K channel Nernst potentl (mV)
@@ -41,7 +41,7 @@ def dXdT(t, X):
     Ca_o = 1800                               # Extracellular Ca conc (uM)
     
     t_SimStart = 10                           # When the stim cycle starts (ms)
-    Period = 1000                             # Stim frequency period (ms)
+    Period = 2000                             # Stim frequency period (ms)
     Deltat = 10;                               # Stim duration (ms)
     Iapp_Amp = 50;                            # Applied current amp (uA/cm^2)
     
@@ -123,8 +123,8 @@ plt.xlabel('Time(s)')
 plt.ylabel('Normalized Fluorescence')
 
 # Set evaluation time points and then integrate
-tspan = np.arange(0., 2000., 0.1)
-results = solve_ivp(dXdT, [0., 2000], [-80, 0.1, 0.8, 0.01, 0.9, 0.9],\
+tspan = np.arange(0., 6000., 0.1)
+results = solve_ivp(dXdT, [0., 6000], [-80, 0.1, 0.8, 0.01, 0.9, 0.9],\
         method = 'Radau', atol = 1e-9, max_step = 0.25, t_eval = tspan)
 plt.figure(1)    
 plt.plot(results.t/1000,(results.y[0]-np.min(results.y))/(np.max(results.y)-np.min(results.y))) #normalize simulation
