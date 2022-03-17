@@ -1,0 +1,125 @@
+function [E] = CK_mb(x, pH, Mg_o, K_o, ATP, ADP, CrP, Pi, T)
+% INPUTS:
+% x - vector of free ion concentrations (Mg, K)
+% pH
+% Mg_o, K_o: total ion concentrations
+% ATP, ADP, CrP, Pi: total reactant concentrations
+%
+% OUTPUT:
+% E - mass balance error
+Mg = x(1);
+K  = x(2); 
+% Binding Constants
+if T == 38
+  Kh_ATP = 3.6199e-007;
+  Kh_ADP = 5.0335e-007;
+  Kh_Pi  = 2.4851e-007;
+  
+  Kh_CrP = 3.53e-5;
+  
+  Kmg_ATP  = 0.00014287;
+  Kmg_ADP  = 0.0010357;
+  Kmg_Pi   = 0.024585;
+  
+  Kmg_CrP  = 0.0544;
+  
+  Kk_ATP  = 0.12765;
+  Kk_ADP  = 0.16312;
+  Kk_Pi   = 0.4382;
+  
+  Kk_CrP  = Inf;
+  
+  Kmg_HATP = 0.039516;
+  Kmg_HADP = 0.084579;
+end
+if T == 25
+  Kh_ATP = 3.6894e-007;
+  Kh_ADP = 5.149e-007;
+  Kh_Pi  = 2.2829e-007;
+  
+  Kh_CrP = 3.27e-5;
+  
+  Kmg_ATP  = 0.0001879;
+  Kmg_ADP  = 0.0013045;
+  Kmg_Pi   = 0.028442;
+  
+  Kmg_CrP  = 0.058824;
+  
+  Kk_ATP  = 0.12793;
+  Kk_ADP  = 0.16133;
+  Kk_Pi   = 0.43499;
+  
+  Kk_CrP  = Inf;
+  
+  Kmg_HATP = 0.051933;
+  Kmg_HADP = 0.10162;
+end
+if T == 15
+  Kh_ATP = 3.7544e-007;
+  Kh_ADP = 5.2534e-007;
+  Kh_Pi  = 2.1292e-007;
+  
+  Kh_CrP = 3.09e-5;
+  
+  Kmg_ATP  = 0.00023669;
+  Kmg_ADP  = 0.001584;
+  Kmg_Pi   = 0.032155;
+  
+  Kmg_CrP  = 0.062893;
+  
+  Kk_ATP  = 0.12837;
+  Kk_ADP  = 0.16006;
+  Kk_Pi   = 0.4327;
+  
+  Kk_CrP  = Inf;
+  
+  Kmg_HATP = 0.065326;
+  Kmg_HADP = 0.11854;
+end
+if T == 5
+  Kh_ATP = 3.8306e-007;
+  Kh_ADP = 5.3734e-007;
+  Kh_Pi  = 1.9774e-007;
+  
+  Kh_CrP = 2.91e-5;
+  
+  Kmg_ATP  = 0.00030401;
+  Kmg_ADP  = 0.0019546;
+  Kmg_Pi   = 0.036726;
+  
+  Kmg_CrP  = 0.068493;
+  
+  Kk_ATP  = 0.12902;
+  Kk_ADP  = 0.15887;
+  Kk_Pi   = 0.43056;
+  
+  Kk_CrP  = Inf;
+  
+  Kmg_HATP = 0.083715;
+  Kmg_HADP = 0.14003;
+end
+H = 10.^(-pH);
+P_ATP = 1 + H./Kh_ATP + Mg./Kmg_ATP + H.*Mg./(Kmg_HATP*Kh_ATP) + K./Kk_ATP;
+P_ADP = 1 + H./Kh_ADP + Mg./Kmg_ADP + H.*Mg./(Kmg_HADP*Kh_ADP) + K./Kk_ADP;
+P_CrP = 1 + H./Kh_CrP + Mg./Kmg_CrP + K./Kk_CrP;
+P_Pi  = 1 + H./Kh_Pi + Mg./Kmg_Pi + K./Kk_Pi;
+ATP1 = ATP./P_ATP;
+ATP2 = ATP.*(H./Kh_ATP)./P_ATP;
+ATP3 = ATP.*(Mg./Kmg_ATP)./P_ATP;
+ATP4 = ATP.*(H./Kh_ATP).*(Mg./Kmg_HATP)./P_ATP;
+ATP5 = ATP.*(K./Kk_ATP)./P_ATP;
+ADP1 = ADP./P_ADP;
+ADP2 = ADP.*(H./Kh_ADP)./P_ADP;
+ADP3 = ADP.*(Mg./Kmg_ADP)./P_ADP;
+ADP4 = ADP.*(H./Kh_ADP).*(Mg./Kmg_HADP)./P_ADP;
+ADP5 = ADP.*(K./Kk_ADP)./P_ADP;
+CrP1 = CrP./P_CrP;
+CrP2 = CrP.*(H./Kh_CrP)./P_CrP;
+CrP3 = CrP.*(Mg./Kmg_CrP)./P_CrP;
+CrP5 = CrP.*(K./Kk_CrP)./P_CrP;
+Pi1 = Pi./P_Pi;
+Pi2 = Pi.*(H./Kh_Pi)./P_Pi;
+Pi3 = Pi.*(Mg./Kmg_Pi)./P_Pi;
+Pi5 = Pi.*(K./Kk_Pi)./P_Pi;
+E = (Mg_o*1e6 - (Mg + ATP3 + ATP4 + ADP3 + ADP4 + CrP3 + Pi3)*1e6)^2 + ...
+      (K_o*1e6 - (K + ATP5 + ADP5 + CrP5 + Pi5)*1e6)^2 ;
