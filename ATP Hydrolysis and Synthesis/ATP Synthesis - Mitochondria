@@ -92,3 +92,36 @@ plt.xlabel('Time (s)')
 plt.ylabel('Concentration (mM)')
 plt.ylim(0, 10)
 plt.show()
+
+### Simulate over a range of membrane potential from 100 mV to 250 mV ###
+
+# Define array to iterate over
+membrane_potential = np.linspace(100,250)    # mV
+
+# Constant external pH
+pH_c = 7.2 # IMS/buffer pH
+
+# Define arrays to store steady state results 
+ATP_steady_DPsi = np.zeros(len(membrane_potential))
+ADP_steady_DPsi = np.zeros(len(membrane_potential))
+Pi_steady_DPsi  = np.zeros(len(membrane_potential))
+
+# Iterate through range of membrane potentials 
+for i in range(len(membrane_potential)):
+    DPsi = membrane_potential[i] / 1000      # convert to V
+    temp_results = solve_ivp(dXdt, [0, 5], X_0, method = 'Radau', args = (DPsi, pH_c,)).y*1000  # Concentration in mM
+    ATP_steady_DPsi[i] = temp_results[0,-1] 
+    ADP_steady_DPsi[i] = temp_results[1,-1] 
+    Pi_steady_DPsi[i] = temp_results[2,-1] 
+    
+# Concentration vs DPsi
+plt.figure()
+plt.plot(membrane_potential, ATP_steady_DPsi, label = '[$\Sigma$ATP]$_x$')
+plt.plot(membrane_potential, ADP_steady_DPsi, label = '[$\Sigma$ADP]$_x$')
+plt.plot(membrane_potential, Pi_steady_DPsi, label = '[$\Sigma$Pi]$_x$')
+plt.legend()
+plt.xlabel('Membrane potential (mV)')
+plt.ylabel('Concentration (mM)')
+plt.xlim([100, 250])
+plt.show()    
+    
