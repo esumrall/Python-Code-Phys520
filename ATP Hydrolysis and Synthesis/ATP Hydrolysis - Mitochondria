@@ -1,0 +1,49 @@
+# Import numpy package for calculations 
+import numpy as np
+
+# Dissociation constants
+K_MgATP = 10**(-3.88)
+K_MgADP = 10**(-3.00)
+K_MgPi  = 10**(-1.66)
+K_HATP  = 10**(-6.33)
+K_HADP  = 10**(-6.26)
+K_HPi   = 10**(-6.62)
+K_KATP  = 10**(-1.02)
+K_KADP  = 10**(-0.89)
+K_KPi   = 10**(-0.42)
+
+#  Gibbs energy under physiological conditions(J mol^(-1))
+DrGo_ATP = 4990
+
+# Thermochemical constants
+R = 8.314           # J (mol * K)**(-1)
+T = 310.15          # K
+F = 96485           # C mol**(-1)
+
+# Environment concentrations 
+pH = 7
+H  = 10**(-pH)      # Molar 
+K  = 150e-3         # Molar 
+Mg = 1e-3           # Molar 
+
+# Binding polynomials
+P_ATP = 1 + H/K_HATP + K/K_KATP + Mg/K_MgATP # equation 6
+P_ADP = 1 + H/K_HADP + K/K_KADP + Mg/K_MgADP # equation 7 
+P_Pi  = 1 + H/K_HPi  + K/K_KPi  + Mg/K_MgPi  # equation 8 
+
+# Total concentrations 
+sumATP = 0.5e-3         # Molar
+sumADP = 9.5e-3         # Molar
+sumPi  = 1.0e-3         # Molar
+
+# Reaction:
+# ATP4− + H2O ⇌ ADP3− + HPO2−4 + H+
+
+# Use equation 8 to calcuate apparent reference Gibbs energy 
+DrG_ATP_apparent = DrGo_ATP + R * T * np.log(H * P_ATP / (P_ADP * P_Pi))
+
+# Use equation 8 to calculate reaction Gibbs energy 
+DrG_ATP = DrG_ATP_apparent + R * T * np.log((sumADP * sumPi / sumATP))
+
+print('Gibbs energy of ATP hydrolysis (kJ mol^(-1))')
+print(DrG_ATP / 1000) 
