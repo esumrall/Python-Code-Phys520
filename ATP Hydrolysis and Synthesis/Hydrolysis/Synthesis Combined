@@ -1,0 +1,175 @@
+# Import numpy package for calculations 
+import numpy as np
+
+# Dissociation constants
+K_MgATP = 10**(-3.88)
+K_MgADP = 10**(-3.00)
+K_MgPi  = 10**(-1.66)
+K_HATP  = 10**(-6.33)
+K_HADP  = 10**(-6.26)
+K_HPi   = 10**(-6.62)
+K_KATP  = 10**(-1.02)
+K_KADP  = 10**(-0.89)
+K_KPi   = 10**(-0.42)
+
+#  Gibbs energy under physiological conditions(J mol^(-1))
+DrGo_ATP = 4990
+
+# Thermochemical constants
+R = 8.314           # J (mol * K)**(-1)
+T = 310.15          # K
+F = 96485           # C mol**(-1)
+
+# Environment concentrations 
+pH = 7
+H  = 10**(-pH)      # Molar 
+K  = 150e-3         # Molar 
+Mg = 1e-3           # Molar 
+
+# Binding polynomials
+P_ATP = 1 + H/K_HATP + K/K_KATP + Mg/K_MgATP # equation 6
+P_ADP = 1 + H/K_HADP + K/K_KADP + Mg/K_MgADP # equation 7 
+P_Pi  = 1 + H/K_HPi  + K/K_KPi  + Mg/K_MgPi  # equation 8 
+
+# Total concentrations 
+sumATP = 0.5e-3         # Molar
+sumADP = 9.5e-3         # Molar
+sumPi  = 1.0e-3         # Molar
+
+# Reaction:
+# ATP4− + H2O ⇌ ADP3− + HPO2−4 + H+
+
+# Use equation 8 to calcuate apparent reference Gibbs energy 
+DrG_ATP_apparent = DrGo_ATP + R * T * np.log(H * P_ATP / (P_ADP * P_Pi))
+
+# Use equation 8 to calculate reaction Gibbs energy 
+DrG_ATP = DrG_ATP_apparent + R * T * np.log((sumADP * sumPi / sumATP))
+
+print('Gibbs energy of ATP hydrolysis (kJ mol^(-1))')
+print(DrG_ATP / 1000) 
+
+
+import matplotlib.pyplot as plt
+
+from scipy.integrate import solve_ivp
+
+# Define system of ordinary differential equations from equation (13)
+def dXdt(t, X, DPsi, pH_c):
+    # Unpack X state variable
+    sumATP, sumADP, sumPi = X
+    
+    # Biophysical constants 
+    R   = 8.314          # J (mol * K)**(-1)
+    T   = 310.15         # K
+    F   = 96485          # C mol**(-1)
+    
+    # F0F1 constants 
+    n_F    = 8/3
+    X_F    = 1000       # mol (s * L mito)**(-1)
+    DrGo_F = 4990        # (J mol**(-1))
+    
+    # Dissociation constants
+    K_MgATP = 10**(-3.88)
+    K_MgADP = 10**(-3.00)
+    K_MgPi  = 10**(-1.66)
+    K_HATP  = 10**(-6.33)
+    K_HADP  = 10**(-6.26)
+    K_HPi   = 10**(-6.62)
+    K_KATP  = 10**(-1.02)
+    K_KADP  = 10**(-0.89)
+    K_KPi   = 10**(-0.42)
+
+    # Environment concentrations 
+    pH_x = 7.4          # pH in matrix
+    H_x  = 10**(-pH_x)  # M 
+    H_c  = 10**(-pH_c)  # M 
+    K_x  = 150e-3       # M 
+    Mg_x = 1e-3         # M 
+
+    # Volume ratios
+    W_m = 0.7238         # (L mito water) (L mito)**(-1)
+    W_x = 0.9 * W_m      # (L matrix water) (L mito)**(-1)
+    
+    # Binding polynomials
+    P_ATP = 1 + H_x/K_HATP + K_x/K_KATP + Mg_x/K_MgATP # equation 5
+    P_ADP = 1 + H_x/K_HADP + K_x/K_KADP + Mg_x/K_MgADP # equation 6 
+    P_Pi  = 1 + H_x/K_HPi  + K_x/K_KPi  + Mg_x/K_MgPi  # equation 7 
+    
+    # Gibbs energy (equation 9)
+    DrGapp_F = DrGo_F + R * T * np.log(H_x * P_ATP / (P_ADP * P_Pi))
+    
+    # Apparent equilibrium constant 
+    Kapp_F = np.exp((DrGapp_F + n_F * F * DPsi)/ (R * T)) * (H_c / H_x) ** n_F
+    
+    # Flux (mol (s * L mito)**(-1))  
+    J_F = X_F * (Kapp_F * sumADP * sumPi - sumATP)
+       
+    ###### Differential equations (equation 13) ######
+    dATP = J_F / W_x
+    dADP = -J_F / W_x
+    dPi  = -J_F / W_x
+    
+    dX = (dATP, dADP, dPi)
+    return dX
+
+
+# Simple steady state simulation at 175 mV membrane potential 
+
+# Initial conditions (M)
+sumATP_0 = 0.5e-3
+sumADP_0 = 9.5e-3
+sumPi_0  = 1e-3
+
+X_0 = np.array([sumATP_0, sumADP_0, sumPi_0])
+
+# Inputs  
+DPsi = 175e-3 # Constant membrane potential (V)
+pH_c = 7.2    # IMS/buffer pH 
+
+solutions = solve_ivp(dXdt, [0, 1], X_0, method = 'Radau', args = (DPsi,pH_c))
+t = solutions.t
+results = solutions.y 
+results = results * 1000
+
+# Plot figure 
+plt.figure()
+plt.plot(t, results[0,:], label = '[$\Sigma$ATP]$_x$')
+plt.plot(t, results[1,:], label = '[$\Sigma$ADP]$_x$')
+plt.plot(t, results[2,:], label = '[$\Sigma$Pi]$_x$')
+plt.legend()
+plt.xlabel('Time (s)')
+plt.ylabel('Concentration (mM)')
+plt.ylim(0, 10)
+plt.show()
+
+### Simulate over a range of membrane potential from 100 mV to 250 mV ###
+
+# Define array to iterate over
+membrane_potential = np.linspace(100,250)    # mV
+
+# Constant external pH
+pH_c = 7.2 # IMS/buffer pH
+
+# Define arrays to store steady state results 
+ATP_steady_DPsi = np.zeros(len(membrane_potential))
+ADP_steady_DPsi = np.zeros(len(membrane_potential))
+Pi_steady_DPsi  = np.zeros(len(membrane_potential))
+
+# Iterate through range of membrane potentials 
+for i in range(len(membrane_potential)):
+    DPsi = membrane_potential[i] / 1000      # convert to V
+    temp_results = solve_ivp(dXdt, [0, 5], X_0, method = 'Radau', args = (DPsi, pH_c,)).y*1000  # Concentration in mM
+    ATP_steady_DPsi[i] = temp_results[0,-1] 
+    ADP_steady_DPsi[i] = temp_results[1,-1] 
+    Pi_steady_DPsi[i] = temp_results[2,-1] 
+    
+# Concentration vs DPsi
+plt.figure()
+plt.plot(membrane_potential, ATP_steady_DPsi, label = '[$\Sigma$ATP]$_x$')
+plt.plot(membrane_potential, ADP_steady_DPsi, label = '[$\Sigma$ADP]$_x$')
+plt.plot(membrane_potential, Pi_steady_DPsi, label = '[$\Sigma$Pi]$_x$')
+plt.legend()
+plt.xlabel('Membrane potential (mV)')
+plt.ylabel('Concentration (mM)')
+plt.xlim([100, 250])
+plt.show()    
